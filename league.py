@@ -113,6 +113,7 @@ def show_table(play2games):
 	Button(tabwin, text="Save to xml", command=write_data).grid(row=len(newname)*2+3,column=20,columnspan=2, sticky=W)
 	i=0	
 	teamelements = doc.getElementsByTagName('team')
+	print len(teamelements)
 	for elem in teamelements:
 		Label(tabwin, text=elem.getAttributeNode("name").nodeValue).grid(row=i+1,column=0, sticky=W)
 		Label(tabwin, text=elem.getAttributeNode("name").nodeValue).grid(row=0,column=i*2+1,columnspan=2, sticky=N)
@@ -220,28 +221,28 @@ def set_stats(event):
 	Label(tabwin, text= "goals" ,font=("Helvetica", 35)).grid(row=i+1,column=13, columnspan=4)
 	Label(tabwin, text= "points" ,font=("Helvetica", 35)).grid(row=i+1,column=17, columnspan=2)
 
-
 	i+=2
 	for elem in sortedteams:
 		ltext = elem.getAttribute('name') 
 		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=1, columnspan=4)
 		ltext = str(elem.getAttribute('games')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=5, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=5, columnspan=2)
 		ltext = str(elem.getAttribute('wins')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=7, columnspan=1)		
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=7, columnspan=2)		
 		ltext = str(elem.getAttribute('ties')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=9, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=9, columnspan=2)
 		ltext = str(elem.getAttribute('losses'))
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=11, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=11, columnspan=2)
 		ltext = str(elem.getAttribute('goals')) + ":"
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=13, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=13, columnspan=2, sticky=E)
 		ltext = str(elem.getAttribute('goalsagainst'))    
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=15, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=15, columnspan=2, sticky=W)
 		ltext = str(elem.getAttribute('points')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=17, columnspan=1)
+		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=17, columnspan=2)
 		i+=1
 
 def load_data(tdict):
+	global doc
 	#clear the main window
 	load_b.pack_forget()
 	cleague_b.pack_forget()
@@ -255,16 +256,28 @@ def load_data(tdict):
 		doc= xml.parse(filename)
 	except:
 		print "No (acceptable) '.xml' found! Select a new one or create a new league!"
-
+        
 	nameelements = doc.getElementsByTagName('team')
+        for i in range(0,len(nameelements)):
+		newname[i]=nameelements[i].getAttribute('name')
+	"""	
+	
 	
 	for i in range(0,len(nameelements)):
 			#if elem.tagName=="FlashFolder" and not elem.getAttribute('filename')=="":
 			#create dictionary for every dictionary element
+						
 			tdict[i] = { "name": str(nameelements[i].getAttributeNode("name").nodeValue),"points": int(nameelements[i].getAttributeNode("points").nodeValue) }
-			#tdict[i]['goals'].append("3")
+			tdict[i]['games']= str(nameelements[i].getAttributeNode("games").nodeValue
+			tdict[i]['wins']= str(nameelements[i].getAttributeNode("wins").nodeValue
+			tdict[i]['ties']= str(nameelements[i].getAttributeNode("ties").nodeValue
+			tdict[i]['losses']= str(nameelements[i].getAttributeNode("losses").nodeValue
+			tdict[i]['goals']= str(nameelements[i].getAttributeNode("goals").nodeValue
+			tdict[i]['goalsagainst']= str(nameelements[i].getAttributeNode("goalsagainst").nodeValue
 	print tdict
-	show_table(doc)
+	"""
+	play2games=1 #TODO
+	show_table(play2games)
 
 def save_data():
 	global doc
