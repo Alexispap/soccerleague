@@ -2,7 +2,7 @@ from Tkinter import *
 import xml.dom.minidom as xml
 import os
 import tkFileDialog
-
+import ImageTk
 
 
 def create_league():
@@ -99,7 +99,12 @@ def create(tname,cleague_b,c):
 					tdb_xml.appendChild(elem)
 					elem.setAttribute('team1', newname[i])
 					elem.setAttribute('team2', newname[j])
-	
+	  	#save additional infos
+		elem=doc.createElement('additionalinfo')
+		elem.setAttribute('play2games', str(play2games))
+		elem.setAttribute('leaguename', str(leaguename))
+		tdb_xml.appendChild(elem)
+
 		#save doc to file for the first time
 		xml_file = open("./"+str(leaguename)+".xml", "w")
 		tdb_xml.writexml(xml_file)
@@ -110,10 +115,12 @@ def create(tname,cleague_b,c):
 def show_table(play2games):
 	global tdict,doc, tabwin		
 	tabwin=Toplevel()
+	bgimage=ImageTk.PhotoImage(file='bg2.jpg') 
+        bglabel=Label(tabwin, image=bgimage)
+	tabwin.bgim=bgimage
 	Button(tabwin, text="Save to xml", command=write_data).grid(row=len(newname)*2+3,column=20,columnspan=2, sticky=W)
 	i=0	
 	teamelements = doc.getElementsByTagName('team')
-	print len(teamelements)
 	for elem in teamelements:
 		Label(tabwin, text=elem.getAttributeNode("name").nodeValue).grid(row=i+1,column=0, sticky=W)
 		Label(tabwin, text=elem.getAttributeNode("name").nodeValue).grid(row=0,column=i*2+1,columnspan=2, sticky=N)
@@ -129,11 +136,26 @@ def show_table(play2games):
 			if i<j and play2games==0:
 				tdict[i][str(j)+"0"].config(state='disabled')
 				tdict[i][str(j)+"1"].config(state='disabled')
+			
+
 			tdict[i][str(j)+"0"].bind('<FocusOut>', set_stats)
 			tdict[i][str(j)+"1"].bind('<FocusOut>', set_stats)
 			
 		i+=1
-
+	#fill the entries if data exists
+	matchelements = doc.getElementsByTagName('match')
+	for elem in matchelements:
+		if elem.getAttribute('goals1') and elem.getAttribute('goals2'):
+			team1=elem.getAttribute('team1')
+			team2=elem.getAttribute('team2')
+			for i in range(0,len(newname)):
+				if newname[i] == team1: 
+					for j in range(0,len(newname)):
+						if newname[j] == team2: 
+							tdict[i][str(j)+"0"].insert(0,elem.getAttribute('goals1'))
+							tdict[i][str(j)+"1"].insert(0,elem.getAttribute('goals2'))
+			set_stats(None)
+			
 
 def set_stats(event):
 	global doc,tabwin
@@ -167,7 +189,6 @@ def set_stats(event):
 				
 				#save match
 				for elem in nodes:
-					print elem.getAttribute('team1'),elem.getAttribute('team2'),newname[i],newname[j]
 					if elem.getAttribute('team1')==newname[i] and elem.getAttribute('team2')==newname[j]:
 						elem.setAttribute('goals1', str(g1))
 						elem.setAttribute('goals2', str(g2))
@@ -190,7 +211,6 @@ def set_stats(event):
 					losses +=1
 				#save match
 				for elem in nodes:
-					print "second loop:",elem.getAttribute('team1'),elem.getAttribute('team2'),newname[i],newname[j]
 					if elem.getAttribute('team1')==newname[i] and elem.getAttribute('team2')==newname[j]:
 						elem.setAttribute('goals1', str(g2))
 						elem.setAttribute('goals2', str(g1))
@@ -212,37 +232,40 @@ def set_stats(event):
 	nodes= doc.getElementsByTagName('team')
 	sortedteams=sorted(nodes, key=lambda x: int(x.attributes['points'].value), reverse=True)	
         i= len(newname)	+ 5
-	Label(tabwin, text= "table of " + leaguename,font=("Helvetica", 35),justify='center').grid(row=i,column=1, columnspan= len("table of " + leaguename))
-	Label(tabwin, text= "name" ,font=("Helvetica", 35)).grid(row=i+1,column=1, columnspan=4)
-	Label(tabwin, text= "games" ,font=("Helvetica", 35)).grid(row=i+1,column=5, columnspan=2)
-	Label(tabwin, text= "wins" ,font=("Helvetica", 35)).grid(row=i+1,column=7, columnspan=2)
-	Label(tabwin, text= "ties" ,font=("Helvetica", 35)).grid(row=i+1,column=9, columnspan=2)
-	Label(tabwin, text= "losses" ,font=("Helvetica", 35)).grid(row=i+1,column=11, columnspan=2)
-	Label(tabwin, text= "goals" ,font=("Helvetica", 35)).grid(row=i+1,column=13, columnspan=4)
-	Label(tabwin, text= "points" ,font=("Helvetica", 35)).grid(row=i+1,column=17, columnspan=2)
+	
+	group = LabelFrame(tabwin, text= "table of " + leaguename,font=("Helvetica", 35), padx=5, pady=5, bg='black',fg='white',relief='groove')
+	group.grid(row=i,column=1, columnspan= len("table of " + leaguename), rowspan=20 )
+	#Label(tabwin, text= "table of " + leaguename,font=("Helvetica", 35),justify='center').grid(row=i,column=1, columnspan= len("table of " + leaguename))
+	Label(group, text= "name" ,font=("Helvetica", 35) ,bg='black',fg='white').grid(row=i+1,column=1, columnspan=4)
+	Label(group, text= "games" ,font=("Helvetica", 35), bg='black',fg='white').grid(row=i+1,column=5, columnspan=2)
+	Label(group, text= "wins" ,font=("Helvetica", 35) ,bg='black',fg='white').grid(row=i+1,column=7, columnspan=2)
+	Label(group, text= "ties" ,font=("Helvetica", 35) ,bg='black',fg='white').grid(row=i+1,column=9, columnspan=2)
+	Label(group, text= "losses" ,font=("Helvetica", 35), bg='black',fg='white').grid(row=i+1,column=11, columnspan=2)
+	Label(group, text= "goals" ,font=("Helvetica", 35) ,bg='black',fg='white').grid(row=i+1,column=13, columnspan=4)
+	Label(group, text= "points" ,font=("Helvetica", 35), bg='black',fg='white').grid(row=i+1,column=17, columnspan=2)
 
 	i+=2
 	for elem in sortedteams:
 		ltext = elem.getAttribute('name') 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=1, columnspan=4)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=1, columnspan=4)
 		ltext = str(elem.getAttribute('games')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=5, columnspan=2)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=5, columnspan=2)
 		ltext = str(elem.getAttribute('wins')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=7, columnspan=2)		
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=7, columnspan=2)		
 		ltext = str(elem.getAttribute('ties')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=9, columnspan=2)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=9, columnspan=2)
 		ltext = str(elem.getAttribute('losses'))
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=11, columnspan=2)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=11, columnspan=2)
 		ltext = str(elem.getAttribute('goals')) + ":"
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=13, columnspan=2, sticky=E)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=13, columnspan=2, sticky=E)
 		ltext = str(elem.getAttribute('goalsagainst'))    
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=15, columnspan=2, sticky=W)
+		Label(group, text= ltext,font=("Helvetica", 24),justify='center' ,bg='black',fg='white').grid(row=i,column=15, columnspan=2, sticky=W)
 		ltext = str(elem.getAttribute('points')) 
-		Label(tabwin, text= ltext,font=("Helvetica", 24),justify='center').grid(row=i,column=17, columnspan=2)
+		Label(group, text= ltext,font=("Helvetica",24,"bold"),justify='center' ,bg='black',fg='red').grid(row=i,column=17, columnspan=2)
 		i+=1
 
 def load_data(tdict):
-	global doc
+	global doc, leaguename
 	#clear the main window
 	load_b.pack_forget()
 	cleague_b.pack_forget()
@@ -276,7 +299,9 @@ def load_data(tdict):
 			tdict[i]['goalsagainst']= str(nameelements[i].getAttributeNode("goalsagainst").nodeValue
 	print tdict
 	"""
-	play2games=1 #TODO
+	elem=doc.getElementsByTagName('additionalinfo')	
+	play2games=elem[0].getAttribute('play2games')
+	leaguename=elem[0].getAttribute('leaguename')
 	show_table(play2games)
 
 def save_data():
@@ -316,11 +341,13 @@ def write_data():
 ########################################### MAIN ########################################################################
 #create Tkinter main window
 top = Tk()
-top.title("Soccer League Creator and Manager") 
+top.title("Soccer League Creator and Manager")
+iconbitmapLocation = "@./icon_ball.xbm"
+top.iconmask(iconbitmapLocation)
 
-#iconbitmapLocation = "@./.TexFlasher/pictures/icon2.xbm"
-#top.iconbitmap(iconbitmapLocation)
-#top.iconmask(iconbitmapLocation)
+bgimage=ImageTk.PhotoImage(file='bg1.jpg') 
+bglabel=Label(top, image=bgimage)
+bglabel.pack()
 
 
 tdict={}
